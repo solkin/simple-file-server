@@ -1,5 +1,5 @@
 # simple-file-server
-Extremely simple Web file server
+Extremely simple and lightweight Web file server with Web interface similar to Apache server
 
 ![media/browser.png](media/browser.png)
 
