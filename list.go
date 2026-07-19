@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"io"
 	"net/http"
 	"os"
 	"path"
@@ -118,14 +119,17 @@ func GetFileContentType(file *os.File) (string, error) {
 
 	buf := make([]byte, 512)
 
-	_, err := file.Read(buf)
+	n, err := file.Read(buf)
 
-	if err != nil {
+	// A short file is not an error: io.EOF just means there is less than 512
+	// bytes to sniff. Only the bytes actually read may be handed to the
+	// detector, or the zero padding makes every small text file look binary.
+	if err != nil && err != io.EOF {
 		return "", err
 	}
 
 	// the function that actually does the trick
-	contentType := http.DetectContentType(buf)
+	contentType := http.DetectContentType(buf[:n])
 
 	return contentType, nil
 }
