@@ -31,8 +31,10 @@ func main() {
 	flag.StringVar(&baseDir, "dir", "", "directory for static files serving")
 	flag.Parse()
 
+	// Check err first: on any error (missing path, permission denied, empty
+	// -dir) baseDirInfo is nil, so calling IsDir on it would panic.
 	baseDirInfo, err := os.Stat(baseDir)
-	if os.IsNotExist(err) || !baseDirInfo.IsDir() {
+	if err != nil || !baseDirInfo.IsDir() {
 		log.Fatal("Directory does not exist or is not a directory.")
 	}
 
