@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 )
 
 //go:embed templates/list.html
@@ -41,9 +43,11 @@ func main() {
 	log.Println("register handlers")
 	registerApiHandlers()
 
+	srv := &http.Server{Addr: fmt.Sprintf(":%d", port)}
+
 	go func() {
-		if err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil); err != nil {
-			log.Println(err)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
 		}
 	}()
 
@@ -54,7 +58,13 @@ func main() {
 	<-sig
 
 	log.Println("shutting down")
-	os.Exit(0)
+
+	// Give in-flight requests a moment to finish instead of dropping them.
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Println(err)
+	}
 }
 
 func registerApiHandlers() {
