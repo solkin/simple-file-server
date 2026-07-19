@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,7 +13,7 @@ import (
 
 type FileData struct {
 	Name string `json:"name"`
-	Path string `json:"path"`
+	Link string `json:"link"`
 	Type string `json:"type"`
 	Size string `json:"size"`
 	Icon string `json:"icon"`
@@ -69,7 +70,9 @@ func GetListFilesData(urlPath string) (*FilesListData, *ErrorResult) {
 		var size string
 		var icon string
 		abs := filepath.Join(dir, entry.Name())
-		rel := path.Join(urlPath, entry.Name())
+		// Names may contain characters that are structural in a URL ("?", "#",
+		// space), so escape the link instead of pasting the raw name into href.
+		link := (&url.URL{Path: path.Join(urlPath, entry.Name())}).String()
 		if entry.IsDir() {
 			contentType = "directory"
 			size = ""
@@ -86,7 +89,7 @@ func GetListFilesData(urlPath string) (*FilesListData, *ErrorResult) {
 
 		files[i] = FileData{
 			Name: entry.Name(),
-			Path: rel,
+			Link: link,
 			Type: contentType,
 			Size: size,
 			Icon: icon,

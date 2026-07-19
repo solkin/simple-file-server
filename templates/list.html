@@ -10,7 +10,7 @@
     <tr class="indexhead"><th class="indexcolicon"><img src="/static/blank.svg" alt="[TXT]"></th><th class="indexcolname"><a href="?C=N;O=D">Name</a></th><th class="indexcollastmod"><a href="?C=M;O=A">Content Type</a></th><th class="indexcolsize"><a href="?C=S;O=A">Size</a></th></tr>
     <tr class="indexbreakrow"><th colspan="4"><hr></th></tr>
     {{range .Files}}
-    <tr class="odd"><td class="indexcolicon"><a href="{{.Path}}"><img src="/static/{{.Icon}}.svg" alt="[TXT]"></a></td><td class="indexcolname"><a href="{{.Path}}">{{.Name}}</a></td><td class="indexcollastmod">{{.Type}}</td><td class="indexcolsize">{{.Size}}</td></tr>
+    <tr class="odd"><td class="indexcolicon"><a href="{{.Link}}"><img src="/static/{{.Icon}}.svg" alt="[TXT]"></a></td><td class="indexcolname"><a href="{{.Link}}">{{.Name}}</a></td><td class="indexcollastmod">{{.Type}}</td><td class="indexcolsize">{{.Size}}</td></tr>
     {{end}}
     <tr class="indexbreakrow"><th colspan="4"><hr></th></tr>
 </table>
