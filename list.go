@@ -3,8 +3,8 @@ package main
 import (
 	"html/template"
 	"net/http"
-	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 )
@@ -23,17 +23,19 @@ type FilesListData struct {
 }
 
 func ListFilesWeb(w http.ResponseWriter, r *http.Request) {
-	uri := r.RequestURI
-	decodedUri, _ := url.QueryUnescape(uri)
-	path := filepath.Join(baseDir, decodedUri)
+	// Use r.URL.Path, not r.RequestURI: the latter is raw and carries the query
+	// string, which the mux does not clean. Cleaning against "/" strips any ".."
+	// segments, so the joined path can never escape baseDir.
+	urlPath := path.Clean("/" + r.URL.Path)
+	fullPath := filepath.Join(baseDir, filepath.FromSlash(urlPath))
 
-	info, err := os.Stat(path)
+	info, err := os.Stat(fullPath)
 	if err != nil {
 		Error(http.StatusInternalServerError, "Unable to list files", w)
 		return
 	}
 	if info.IsDir() {
-		data, err := GetListFilesData(decodedUri)
+		data, err := GetListFilesData(urlPath)
 		if err != nil {
 			Error(err.Status, err.Description, w)
 			return
@@ -41,8 +43,8 @@ func ListFilesWeb(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("templates/list.html")
 		_ = t.Execute(w, data)
 	} else {
-		name := filepath.Base(path)
-		file, err := os.Open(path)
+		name := filepath.Base(fullPath)
+		file, err := os.Open(fullPath)
 		if err != nil {
 			Error(http.StatusInternalServerError, "Unable to serve file", w)
 			return
@@ -51,8 +53,8 @@ func ListFilesWeb(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetListFilesData(path string) (*FilesListData, *ErrorResult) {
-	dir := filepath.Join(baseDir, path)
+func GetListFilesData(urlPath string) (*FilesListData, *ErrorResult) {
+	dir := filepath.Join(baseDir, filepath.FromSlash(urlPath))
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, &ErrorResult{http.StatusInternalServerError, "Unable to list files"}
@@ -64,7 +66,7 @@ func GetListFilesData(path string) (*FilesListData, *ErrorResult) {
 		var size string
 		var icon string
 		abs := filepath.Join(dir, entry.Name())
-		rel := filepath.Join(path, entry.Name())
+		rel := path.Join(urlPath, entry.Name())
 		if entry.IsDir() {
 			contentType = "directory"
 			size = ""
@@ -88,7 +90,7 @@ func GetListFilesData(path string) (*FilesListData, *ErrorResult) {
 		}
 	}
 	return &FilesListData{
-		Path:  path,
+		Path:  urlPath,
 		Files: files,
 	}, nil
 }
