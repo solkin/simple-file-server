@@ -4,28 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 )
-
-type SuccessResult struct {
-	Status int         `json:"status"`
-	Result interface{} `json:"result"`
-}
 
 type ErrorResult struct {
 	Status      int    `json:"status"`
 	Description string `json:"description"`
-}
-
-func Success(status int, data interface{}, w http.ResponseWriter) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Server", GetServerName())
-	w.WriteHeader(status)
-	result := SuccessResult{
-		Status: status,
-		Result: data,
-	}
-	_ = json.NewEncoder(w).Encode(result)
 }
 
 func Error(status int, description string, w http.ResponseWriter) {
@@ -55,9 +38,4 @@ func ByteCountIEC(b int64) string {
 	}
 	return fmt.Sprintf("%.1f%ciB",
 		float64(b)/float64(div), "KMGTPE"[exp])
-}
-
-func ParseInt64(str string) int64 {
-	value, _ := strconv.ParseInt(str, 10, 64)
-	return value
 }
