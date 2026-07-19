@@ -49,6 +49,8 @@ func ListFilesWeb(w http.ResponseWriter, r *http.Request) {
 			Error(http.StatusInternalServerError, "Unable to serve file", w)
 			return
 		}
+		//goland:noinspection GoUnhandledErrorResult
+		defer file.Close()
 		http.ServeContent(w, r, name, info.ModTime(), file)
 	}
 }
