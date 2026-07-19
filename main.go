@@ -1,13 +1,25 @@
 package main
 
 import (
+	"embed"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 )
+
+//go:embed templates/list.html
+var templateFS embed.FS
+
+//go:embed static
+var staticFS embed.FS
+
+// Parsed once at startup and embedded into the binary, so the server no longer
+// depends on templates/ and static/ sitting next to the working directory.
+var listTemplate = template.Must(template.ParseFS(templateFS, "templates/list.html"))
 
 var baseDir string
 
@@ -44,6 +56,6 @@ func main() {
 }
 
 func registerApiHandlers() {
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	http.Handle("/static/", http.FileServer(http.FS(staticFS)))
 	http.HandleFunc("/", ListFilesWeb)
 }

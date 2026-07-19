@@ -1,7 +1,6 @@
 package main
 
 import (
-	"html/template"
 	"io"
 	"net/http"
 	"net/url"
@@ -42,8 +41,7 @@ func ListFilesWeb(w http.ResponseWriter, r *http.Request) {
 			Error(err.Status, err.Description, w)
 			return
 		}
-		t, _ := template.ParseFiles("templates/list.html")
-		_ = t.Execute(w, data)
+		_ = listTemplate.Execute(w, data)
 	} else {
 		name := filepath.Base(fullPath)
 		file, err := os.Open(fullPath)
