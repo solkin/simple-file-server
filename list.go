@@ -64,7 +64,15 @@ func GetListFilesData(urlPath string) (*FilesListData, *ErrorResult) {
 		return nil, &ErrorResult{http.StatusInternalServerError, "Unable to list files"}
 	}
 	files := make([]FileData, len(entries))
-	sort.Slice(entries, func(i, j int) bool { return entries[i].IsDir() })
+	// Directories first, then by name. The comparator has to define a strict
+	// ordering: "entries[i].IsDir()" on its own holds both ways for a pair of
+	// directories, which leaves the resulting order undefined.
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].IsDir() != entries[j].IsDir() {
+			return entries[i].IsDir()
+		}
+		return entries[i].Name() < entries[j].Name()
+	})
 	for i, entry := range entries {
 		var contentType string
 		var size string
